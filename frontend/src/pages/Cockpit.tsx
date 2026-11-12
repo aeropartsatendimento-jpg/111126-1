@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import AgentAvatar from "@/components/AgentAvatar";
+import AgentModelEditor from "@/components/AgentModelEditor";
 import StatusBadge from "@/components/StatusBadge";
 import RoomStream from "@/components/RoomStream";
 import DataRegionState from "@/components/DataRegionState";
@@ -205,6 +206,7 @@ function AgentNode({ agentKey, agent }: { agentKey: string; agent?: Agent }) {
             {agent.open_tasks} {t("hierarchy.openTasks")}
           </span>
         )}
+        {agent && <AgentModelEditor agent={agent} />}
       </div>
       {agent && (
         <p className="mt-2 border-t pt-2 font-mono text-[11px] text-slate-500" data-testid={`agent-brain-${agentKey}`}>

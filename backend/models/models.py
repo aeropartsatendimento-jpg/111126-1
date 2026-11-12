@@ -29,12 +29,18 @@ class Agent(BaseModel):
     role_en: str
     description_pt: str
     description_en: str
-    provider: str  # openai | gemini
+    provider: str  # openai | anthropic | gemini
     model: str
-    brain: str = ""  # borrowed upstream brain (Router Eight, Codex Pro, ChatGPT Plus...)
+    brain: str = ""  # borrowed upstream brain (Router Eight, Codex Pro, Claude Sonnet...)
     status: str = "idle"  # idle | working (computed on read)
     open_tasks: int = 0  # computed on read
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AgentModelUpdate(BaseModel):
+    provider: str = Field(pattern=r"^(openai|anthropic|gemini)$")
+    model: str = Field(min_length=2, max_length=80)
+    brain: Optional[str] = Field(default=None, max_length=80)
 
 
 class Mission(BaseModel):

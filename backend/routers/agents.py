@@ -1,13 +1,25 @@
-"""Agent registry — the five-I hierarchy, read-only for now."""
+"""Agent registry — the five-I hierarchy with editable brain per agent."""
 
-from fastapi import APIRouter
+from datetime import datetime, timezone
 
-from models.models import Agent, aware
+from fastapi import APIRouter, HTTPException
+
+from models.models import Agent, AgentModelUpdate, aware
 from lib.db import db
 
 router = APIRouter()
 
 WORKING_SET = {"status": {"$in": ["queued", "working"]}}
+
+# Sane defaults so the switcher UI auto-fills the "brain" label when the Boss picks a provider.
+BRAIN_DEFAULTS = {
+    ("openai", "gpt-5.4"): "ChatGPT · gpt-5.4",
+    ("openai", "gpt-5.4-mini"): "ChatGPT · gpt-5.4-mini",
+    ("anthropic", "claude-sonnet-5-5"): "Claude Sonnet",
+    ("anthropic", "claude-opus-5-5"): "Claude Opus",
+    ("anthropic", "claude-haiku-5-5"): "Claude Haiku",
+    ("gemini", "gemini-3-flash-preview"): "Gemini Flash",
+}
 
 
 @router.get("/agents", response_model=list[Agent])
@@ -33,3 +45,25 @@ async def list_agents():
         doc["status"] = "working" if doc["key"] in working_keys else "idle"
         out.append(Agent(**doc))
     return out
+
+
+@router.patch("/agents/{key}", response_model=Agent)
+async def update_agent_model(key: str, update: AgentModelUpdate):
+    doc = await db.agents.find_one({"key": key})
+    if not doc:
+        raise HTTPException(status_code=404, detail="agent not found")
+    brain = update.brain if update.brain is not None else BRAIN_DEFAULTS.get((update.provider, update.model), doc.get("brain", ""))
+    await db.agents.update_one(
+        {"key": key},
+        {"$set": {
+            "provider": update.provider,
+            "model": update.model,
+            "brain": brain,
+            "updated_at": datetime.now(timezone.utc),
+        }},
+    )
+    fresh = await db.agents.find_one({"key": key})
+    fresh["created_at"] = aware(fresh["created_at"])
+    fresh["open_tasks"] = await db.tasks.count_documents({"agent_key": key, "status": {"$in": ["queued", "working"]}})
+    fresh["status"] = "working" if await db.tasks.find_one({"agent_key": key, "status": "working"}) else "idle"
+    return Agent(**fresh)

@@ -17,6 +17,12 @@ export interface Agent {
   created_at: string;
 }
 
+export interface AgentModelUpdate {
+  provider: string; // openai | anthropic | gemini
+  model: string;
+  brain?: string | null;
+}
+
 export interface Mission {
   id: string;
   text: string;

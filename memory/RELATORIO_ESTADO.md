@@ -113,6 +113,28 @@ Depois dessa validação, P1.4–P1.7 receberam novas implementações que ainda
 - Estado: código aplicado e **ainda não validado**, incluído na bateria agrupada solicitada pelo Chefe.
 - Próximo passo exato: tornar missões/tarefas em andamento recuperáveis após reinício do backend.
 
+## Registro de continuidade — 13/11/2026 · Bateria P1.4–P1.7 + troca de modelo por agente
+
+- **P1.4–P1.7 validados**: Testing Agent `iteration_9.json` = **8/8 passed**, 0 bugs, 0 bloqueios, retest_needed=false.
+  Cobertura: mobile/teclado (390x844), recuperação de mutation com preserve-input + retry, Saúde do QG com histórico,
+  retomada após `sudo supervisorctl restart backend` sem duplicar missão/entrega/resumo (IDs determinísticos).
+  Suíte backend completa: **40/40** (3 novos arquivos).
+- **Novo feature "Trocar cérebro por agente"**: `PATCH /api/agents/{key}` valida provider ∈ {openai, anthropic, gemini},
+  model obrigatório, brain opcional com default por par (provider,model). UI: `AgentModelEditor` no Cockpit, abre dialog
+  com select de provider, input de modelo + sugestões (gpt-5.4, claude-sonnet-5-5, gemini-3-flash-preview), input de rótulo.
+  Toast de sucesso/erro, invalida `['agents']`. Sem reseed.
+- **Seed atualizado** e aplicado: jarvis/aluna/plus em `anthropic/claude-sonnet-5-5`; zero/pro seguem em `openai/gpt-5.4`.
+- **Brain em nuvem**: decisão do Chefe — permanece em modo SIMULADO nesta rodada. `/api/system` retorna
+  `brain=simulated` e nenhuma rota quebra; validado pela bateria.
+- **Melhoria registrada (não bug)**: React dev-warning "Cannot update OperationalHealthCard while rendering RoomStream"
+  no mobile-keyboard check; sem efeito para o usuário.
+- Arquivos: `backend/models/models.py`, `backend/routers/agents.py`, `backend/seed.py`,
+  `frontend/src/lib/types.ts`, `frontend/src/components/AgentModelEditor.tsx`,
+  `frontend/src/pages/Cockpit.tsx`, `frontend/src/lib/i18n.tsx`, `backend/.env` (recriado mínimo),
+  `memory/SPEC.md`, `memory/RELATORIO_ESTADO.md`, `memory/test_credentials.md`.
+- Próximo passo exato: habilitar `EMERGENT_LLM_KEY` pelo painel seguro quando o Chefe quiser sair do SIMULADO,
+  e `QG_MCP_TOKEN` para expor o servidor MCP a clientes externos.
+
 ## Registro de continuidade — 12/11/2026 · P2.1 Claude adicionado (parcial)
 
 - Integrações ChatGPT (OpenAI) e Claude (Anthropic) via `emergentintegrations` prontas na mesma `lib/brain.py`.

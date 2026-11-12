@@ -1,0 +1,74 @@
+{
+  "iteration": 9,
+  "summary": "New round: PATCH /api/agents/{key} live model switcher (backend + UI editor), health-panel per-area/history card, mutation-recovery (preserve-input + retry) pattern, mobile/keyboard usability, backend-restart resumption without duplication, and simulated-brain regression. 8/8 acceptance criteria covered with 7 backend test files + 7 browser checks (one criterion, PATCH validation, is pure-API and covered only by backend tests; one browser check doubles as the public-preview smoke run). Full backend suite: 40/40 passed (3 new files this round). All 7 browser checks pass on localhost; one lighter smoke check re-confirmed Cockpit + /api/system on the public preview URL after the full multi-route check hit an ingress 429 rate limit unrelated to the app.",
+  "passed": 8,
+  "failed": 0,
+  "flaky": 0,
+  "blocked": 0,
+  "test_error": 0,
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Novo endpoint PATCH /api/agents/{key} troca provider/model/brain em tempo real",
+      "name": "test_tscheck_agent_patch.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "PATCH /api/agents/jarvis {provider:anthropic,model:claude-sonnet-5-5,brain:tscheck-brain-label} -> 200 with updated fields; GET /api/agents reflects it; PATCH /api/agents/tscheck-nonexistent-agent -> 404; PATCH with provider='not-a-real-provider' -> 422. Original jarvis config restored in a finally block. 3/3 passed."
+    },
+    {
+      "criterion": "Editor de modelo por agente funciona pela UI do Cockpit",
+      "name": "agent-model-editor-updates-brain-label",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "On /, agent-edit-model-plus opened agent-edit-dialog-plus; switched provider via agent-edit-provider-plus to ChatGPT (auto-filled model gpt-5.4), set brain label, agent-edit-save-plus closed the dialog and agent-brain-plus updated to 'tscheck-brain-openai' with no reload. Reverted plus back to anthropic/claude-sonnet-5-5/Claude Sonnet afterwards."
+    },
+    {
+      "criterion": "P1.4 mobile/teclado — jornadas principais utilizáveis em viewport móvel e por teclado",
+      "name": "mobile-keyboard-journeys-usable",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: Tab from body focuses skip-to-content-link first; Cockpit/Sala/Loja all render with scrollWidth<=clientWidth+2 (no horizontal overflow); mobile-bottom-nav visible; Loja Tab order store-stock-title-input -> store-stock-value-input -> store-stock-add-btn confirmed via toBeFocused(). One non-blocking React dev warning noted below (setState-in-render across OperationalHealthCard/RoomStream) - console-only, did not affect behavior."
+    },
+    {
+      "criterion": "P1.5 recuperação de ações — falha de mutação preserva entrada e oferece repetir/fechar",
+      "name": "mission-mutation-recovery-preserves-input",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Forced POST /api/missions to 503 via page.route: mission-dispatch-error + retry/dismiss buttons appeared, mission-input kept the typed text. Removed the 503 and clicked mission-dispatch-retry-button -> notice disappeared, textarea cleared; GET /api/missions showed exactly 1 mission with that text (no duplicate from the failed attempt)."
+    },
+    {
+      "criterion": "P1.6 Saúde do QG mostra estado por área e última atualização",
+      "name": "cockpit-health-panel-tracks-areas-and-history",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "operational-health-card shows all 6 areas (agents/projects/tasks/room/store/channels) each with label/status/updated-at. Forcing GET /api/channels to 503 via route then clicking health-refresh-all-button flipped health-area-channels-status to 'Dados antigos' (stale, since cached data existed) and added a history entry; releasing the 503 and refreshing again returned it to 'Disponível'; health-event rows were <=4; health-history-clear-button emptied the history (health-history-empty shown)."
+    },
+    {
+      "criterion": "P1.7 retomada após reinício — missão/visual/proposta não duplicam nem somem",
+      "name": "test_tscheck_restart_resumption.py",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/missions with text=tscheck-restart-mission-<ts>; polled GET /api/missions until status in {delegating,completed}; ran `sudo supervisorctl restart backend` mid-flight; waited for /api/system to come back; polled until status=='completed'. Verified GET /api/missions has exactly 1 row with that exact text, and GET /api/room/messages has no duplicate ids for the mission plus exactly one mission-delegation-<id> message (deterministic ids via $setOnInsert prevented duplication)."
+    },
+    {
+      "criterion": "/api/system reporta brain=simulated e nenhuma rota principal quebra sob modo simulado",
+      "name": "simulated-brain-mission-and-all-routes-load",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "GET /api/system -> {app:'QG do Zero', llm_configured:false, brain:'simulated'}. Dispatched tscheck-simulated-brain-<ts> mission on Cockpit; polled GET /api/missions until status='completed'; GET /api/room/messages for that mission_id contained a '(modo simulado)'-style message. Navigated / , /sala, /tarefas, /zero, /navegador, /loja, /canais, /universo, /memoria and each page's title testid rendered."
+    },
+    {
+      "criterion": "Mobile: o editor de modelo abre e salva dentro do viewport móvel",
+      "name": "mobile-agent-model-editor-saves",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "390x844: agent-edit-model-jarvis opened agent-edit-dialog-jarvis with boundingBox width<=390 (no overflow); agent-edit-model-input-jarvis usable; agent-edit-save-jarvis saved and closed the dialog, agent-brain-jarvis stayed visible. No console errors."
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    "Public preview URL smoke check (preview-cockpit-smoke) passed; the heavier 9-route check against the preview URL hit an ingress-level 429 rate limit (not reproduced on localhost, not an app bug) — localhost remains the primary lane per instructions, preview is spot-checked.",
+    "Non-blocking dev-only console warning observed during mobile-keyboard-journeys-usable: 'Cannot update a component (OperationalHealthCard) while rendering a different component (RoomStream)' — React dev warning only, no user-visible effect, not filed as a bug (classified as improvement/note for the main agent if it wants to clean it up).",
+    "No credentials needed: app has no login (confirmed by SPEC.md and test_credentials.md)."
+  ]
+}
