@@ -43,6 +43,18 @@ class AgentModelUpdate(BaseModel):
     brain: Optional[str] = Field(default=None, max_length=80)
 
 
+class AgentModelChange(BaseModel):
+    id: str = Field(default_factory=new_id)
+    agent_key: str
+    from_provider: str
+    from_model: str
+    from_brain: str
+    to_provider: str
+    to_model: str
+    to_brain: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class Mission(BaseModel):
     id: str = Field(default_factory=new_id)
     text: str

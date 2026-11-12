@@ -71,7 +71,7 @@ gerenciada do Emergent). Sem chave ativa → fallback automático "(modo simulad
   (localStorage `qgzero.spokenBriefing`) + botão "Ouvir" no card. Web Speech API (Chrome).
 
 ## Endpoints (todos em api_router, prefixo /api)
-- `GET /agents` · `PATCH /agents/{key}` (editar provider/model/brain em tempo real, sem reseed; valida provider openai|anthropic|gemini; 404 se chave desconhecida)
+- `GET /agents` · `PATCH /agents/{key}` (editar provider/model/brain em tempo real, sem reseed; valida provider openai|anthropic|gemini; 404 se chave desconhecida) · `GET /agents/{key}/history?limit=N` (até 50, mais recentes primeiro)
 - `GET /system` (pill: cloud|simulated)
 - `POST/GET /missions` · `GET /tasks?agent_key=&status=&mission_id=`
 - `GET/POST /room/messages` · `GET /zero/messages` `POST /zero/chat`
@@ -122,6 +122,7 @@ sem chave/serviço fora → modo simulado automático.
 ## Estabilização atual
 - P1.4–P1.7 **validados em bateria agrupada** (iteration_9: 8/8 passed, 0 bugs).
 - Troca de cérebro por agente em tempo real via `PATCH /api/agents/{key}` + dialog no Cockpit; sem reseed.
+- Selo do provedor (GPT ChatGPT / Claude / Gemini) ao lado do nome do agente e popover de histórico das trocas por agente (até 50, mais recentes primeiro).
 - A prévia da Sala mostra as mensagens mais recentes, não as primeiras do histórico.
 - Respostas assíncronas da Sala e da Linha Direta ficam referenciadas até terminarem.
 - Briefing manual usa a data de `America/Sao_Paulo`, igual à rotina automática.

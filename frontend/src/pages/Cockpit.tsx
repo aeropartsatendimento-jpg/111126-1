@@ -17,7 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import AgentAvatar from "@/components/AgentAvatar";
+import AgentHistoryButton from "@/components/AgentHistoryButton";
 import AgentModelEditor from "@/components/AgentModelEditor";
+import BrainBadge from "@/components/BrainBadge";
 import StatusBadge from "@/components/StatusBadge";
 import RoomStream from "@/components/RoomStream";
 import DataRegionState from "@/components/DataRegionState";
@@ -193,6 +195,13 @@ function AgentNode({ agentKey, agent }: { agentKey: string; agent?: Agent }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate font-heading text-sm font-bold">{name}</span>
+            {agent && (
+              <BrainBadge
+                provider={agent.provider}
+                model={agent.model}
+                testId={`agent-provider-badge-${agentKey}`}
+              />
+            )}
             {agent?.status === "working" && (
               <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                 {t("status.working")}
@@ -206,6 +215,7 @@ function AgentNode({ agentKey, agent }: { agentKey: string; agent?: Agent }) {
             {agent.open_tasks} {t("hierarchy.openTasks")}
           </span>
         )}
+        {agent && <AgentHistoryButton agent={agent} />}
         {agent && <AgentModelEditor agent={agent} />}
       </div>
       {agent && (

@@ -113,6 +113,27 @@ Depois dessa validação, P1.4–P1.7 receberam novas implementações que ainda
 - Estado: código aplicado e **ainda não validado**, incluído na bateria agrupada solicitada pelo Chefe.
 - Próximo passo exato: tornar missões/tarefas em andamento recuperáveis após reinício do backend.
 
+## Registro de continuidade — 13/11/2026 · Avatares por cérebro + histórico de trocas
+
+- **Selo visual** (`BrainBadge`): "GPT ChatGPT" (verde), "Claude" (laranja), "Gemini" (azul) ao lado do nome
+  do agente no Cockpit. Tooltip com provedor + modelo; `data-provider` para acessibilidade/testing.
+- **Histórico de trocas**: coleção `agent_model_changes` (índices id único + `agent_key + created_at desc`).
+  `PATCH /agents/{key}` grava um registro antes de atualizar (from/to provider+model+brain) só quando
+  houver mudança real. Novo `GET /agents/{key}/history?limit=N` devolve até 50, mais recentes primeiro,
+  404 se agente não existe.
+- **UI**: botão "Histórico de trocas" (ícone) no card do agente abre popover com linhas antes → depois
+  usando o próprio `BrainBadge`. Fetch preguiçoso (só quando abre). Warning de dev-only de `refetch` em
+  render corrigido com setTimeout.
+- Smoke local: 2 trocas em `plus` (claude → gpt → claude) retornam 2 linhas em ordem correta; 404 em bogus;
+  typecheck ok; screenshot confirma selos e histórico renderizando sem HTTP errors.
+- Arquivos: `backend/lib/db.py`, `backend/models/models.py`, `backend/routers/agents.py`,
+  `frontend/src/lib/types.ts`, `frontend/src/components/BrainBadge.tsx`,
+  `frontend/src/components/AgentHistoryButton.tsx`, `frontend/src/pages/Cockpit.tsx`, `memory/SPEC.md`.
+- `EMERGENT_LLM_KEY` e `QG_MCP_TOKEN`: oferecidos no painel seguro; Chefe pulou nesta rodada. Fluxo
+  continua em SIMULADO e `/api/mcp` em 503 (esperado).
+- Próximo passo exato: ativar as duas chaves quando o Chefe quiser; validar missão real em nuvem;
+  Testing Agent específico para avatar/histórico se for publicar.
+
 ## Registro de continuidade — 13/11/2026 · Bateria P1.4–P1.7 + troca de modelo por agente
 
 - **P1.4–P1.7 validados**: Testing Agent `iteration_9.json` = **8/8 passed**, 0 bugs, 0 bloqueios, retest_needed=false.

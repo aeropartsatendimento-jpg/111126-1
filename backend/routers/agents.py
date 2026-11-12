@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
-from models.models import Agent, AgentModelUpdate, aware
+from models.models import Agent, AgentModelChange, AgentModelUpdate, aware
 from lib.db import db
 
 router = APIRouter()
@@ -53,13 +53,27 @@ async def update_agent_model(key: str, update: AgentModelUpdate):
     if not doc:
         raise HTTPException(status_code=404, detail="agent not found")
     brain = update.brain if update.brain is not None else BRAIN_DEFAULTS.get((update.provider, update.model), doc.get("brain", ""))
+    now = datetime.now(timezone.utc)
+    # Audit the change before writing — same pattern as revision/proposal ledger.
+    if doc.get("provider") != update.provider or doc.get("model") != update.model or doc.get("brain", "") != brain:
+        change = AgentModelChange(
+            agent_key=key,
+            from_provider=doc.get("provider", ""),
+            from_model=doc.get("model", ""),
+            from_brain=doc.get("brain", ""),
+            to_provider=update.provider,
+            to_model=update.model,
+            to_brain=brain,
+            created_at=now,
+        )
+        await db.agent_model_changes.insert_one(change.model_dump())
     await db.agents.update_one(
         {"key": key},
         {"$set": {
             "provider": update.provider,
             "model": update.model,
             "brain": brain,
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": now,
         }},
     )
     fresh = await db.agents.find_one({"key": key})
@@ -67,3 +81,13 @@ async def update_agent_model(key: str, update: AgentModelUpdate):
     fresh["open_tasks"] = await db.tasks.count_documents({"agent_key": key, "status": {"$in": ["queued", "working"]}})
     fresh["status"] = "working" if await db.tasks.find_one({"agent_key": key, "status": "working"}) else "idle"
     return Agent(**fresh)
+
+
+@router.get("/agents/{key}/history", response_model=list[AgentModelChange])
+async def agent_history(key: str, limit: int = 20):
+    if not await db.agents.find_one({"key": key}):
+        raise HTTPException(status_code=404, detail="agent not found")
+    rows = await db.agent_model_changes.find({"agent_key": key}).sort("created_at", -1).to_list(max(1, min(limit, 50)))
+    for r in rows:
+        r["created_at"] = aware(r["created_at"])
+    return [AgentModelChange(**r) for r in rows]

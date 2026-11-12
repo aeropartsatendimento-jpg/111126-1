@@ -23,6 +23,18 @@ export interface AgentModelUpdate {
   brain?: string | null;
 }
 
+export interface AgentModelChange {
+  id: string;
+  agent_key: string;
+  from_provider: string;
+  from_model: string;
+  from_brain: string;
+  to_provider: string;
+  to_model: string;
+  to_brain: string;
+  created_at: string;
+}
+
 export interface Mission {
   id: string;
   text: string;
