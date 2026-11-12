@@ -113,6 +113,18 @@ Depois dessa validação, P1.4–P1.7 receberam novas implementações que ainda
 - Estado: código aplicado e **ainda não validado**, incluído na bateria agrupada solicitada pelo Chefe.
 - Próximo passo exato: tornar missões/tarefas em andamento recuperáveis após reinício do backend.
 
+## Registro de continuidade — 12/11/2026 · P2.1 Claude adicionado (parcial)
+
+- Integrações ChatGPT (OpenAI) e Claude (Anthropic) via `emergentintegrations` prontas na mesma `lib/brain.py`.
+- Seed atualizado: Jarvis/Luna/Plus passaram de `gemini / gemini-3-flash-preview` para `anthropic / claude-sonnet-5-5`;
+  Zero/Pro seguem em `openai / gpt-5.4`. Infra de provider/model por agente já existia.
+- Chave: `EMERGENT_LLM_KEY` gerenciada pelo Emergent. A chave de teste atual está com budget 0 e produz
+  erro `Budget has been exceeded!`; sem chave ativa, `GET /api/system` reporta `brain=simulated` e o fallback
+  SIMULADO continua operante (comportamento esperado por SPEC).
+- Arquivos alterados: `backend/.env` (recriado mínimo), `backend/seed.py`, `memory/SPEC.md`, `memory/RELATORIO_ESTADO.md`.
+- Próximo passo exato: Chefe habilita a chave universal real (ou própria) pelo painel seguro; depois rodar missão
+  de sanidade pelo Cockpit e confirmar `brain=cloud` com resposta real de ambos os provedores.
+
 ## Registro de continuidade — 12/11/2026 · P1.7 em validação
 
 - Implementado: leases de execução e recuperação no startup para missões normais e visuais interrompidas.

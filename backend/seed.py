@@ -37,9 +37,9 @@ AGENTS = [
         "role_en": "Simple-Task Operator",
         "description_pt": "Cálculos, scripts e tarefas rápidas do dia a dia.",
         "description_en": "Calculations, scripts and quick everyday tasks.",
-        "provider": "gemini",
-        "model": "gemini-3-flash-preview",
-        "brain": "Free LLM",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "brain": "Claude Sonnet",
     },
     {
         "key": "aluna",
@@ -48,9 +48,9 @@ AGENTS = [
         "role_en": "Store Service & AeroPartz Website",
         "description_pt": "Atendimento, catálogo e orçamentos da loja + cuidado do site: conteúdo, publicação e aparência.",
         "description_en": "Store service, catalog and quotes + owns the site: content, publishing and look.",
-        "provider": "gemini",
-        "model": "gemini-3-flash-preview",
-        "brain": "Free LLM",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "brain": "Claude Sonnet",
     },
     {
         "key": "plus",
@@ -59,9 +59,9 @@ AGENTS = [
         "role_en": "Analytical Executor (Simpler Pro)",
         "description_pt": "Versão enxuta do Pro para análise e execução intermediária.",
         "description_en": "A leaner Pro for analysis and mid-weight execution.",
-        "provider": "gemini",
-        "model": "gemini-3-flash-preview",
-        "brain": "ChatGPT Plus",
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "brain": "Claude Sonnet",
     },
 ]
 

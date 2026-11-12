@@ -11,12 +11,14 @@ resultado. Tem Rotina da Manhã automática e linha direta com voz.
 |---|---|---|---|
 | zero | Orquestrador Supremo | Free LLM Router · Router Eight | openai / gpt-5.4 |
 | pro | Braço-direito & Supervisão | Codex Pro | openai / gpt-5.4 |
-| jarvis | Tarefas simples | Free LLM | gemini / gemini-3-flash-preview |
-| aluna | **Luna** — Atendimento Comercial & Site da AeroPartz | Free LLM | gemini / gemini-3-flash-preview |
-| plus | Pro simples, análise | ChatGPT Plus | gemini / gemini-3-flash-preview |
+| jarvis | Tarefas simples | Claude Sonnet | anthropic / claude-sonnet-5-5 |
+| aluna | **Luna** — Atendimento Comercial & Site da AeroPartz | Claude Sonnet | anthropic / claude-sonnet-5-5 |
+| plus | Pro simples, análise | Claude Sonnet | anthropic / claude-sonnet-5-5 |
 
 Nota: `gemini-2.5-flash-lite` é rejeitado pelo gateway — não usar. `GET /api/agents` computa
-`status` (working se há task working) e `open_tasks`.
+`status` (working se há task working) e `open_tasks`. ChatGPT (OpenAI) e Claude (Anthropic) são
+chamados pela mesma `lib/brain.py` via `emergentintegrations` com `EMERGENT_LLM_KEY` (chave universal
+gerenciada do Emergent). Sem chave ativa → fallback automático "(modo simulado)".
 
 ## Fluxos
 1. **Missão**: `POST /api/missions` → `run_mission` (background): Zero planeja (JSON estrito, ≤4 tasks)

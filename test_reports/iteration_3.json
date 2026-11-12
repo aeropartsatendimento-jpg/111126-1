@@ -20,7 +20,7 @@
       "name": "visual-navigator-accessible-preview",
       "lane": "browser",
       "status": "passed",
-      "evidence": "Re-ran same flow against public preview URL https://memoria-projeto-1--3ap7hhw4.preview.emergentagent.com — nav-visual opens /navegador with mode badge visible, no auth gate."
+      "evidence": "Re-ran same flow against public preview URL https://aero-atendimento--32bw0udl.preview.emergentagent.com — nav-visual opens /navegador with mode badge visible, no auth gate."
     },
     {
       "criterion": "Uma missão visual válida percorre quatro etapas",
