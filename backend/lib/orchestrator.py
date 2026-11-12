@@ -20,6 +20,7 @@ from lib.brain import llm_json, llm_text
 from lib.dates import today_iso
 from lib.db import db
 from lib.search import web_search
+from routers.routing import routing_auto, tier_model
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +40,12 @@ PLAN_SYSTEM = (
     "e Plus (executor analítico, versão enxuta do Pro). O Chefe manda a missão e VOCÊ a decompõe e delega.\n"
     "Responda SOMENTE com um JSON válido, sem markdown, no formato:\n"
     '{"intro": "1-2 frases anunciando o plano", '
-    '"tasks": [{"agent_key": "pro|jarvis|aluna|plus", "title": "título curto", "detail": "o que fazer e qual o critério de entrega"}], '
+    '"tasks": [{"agent_key": "pro|jarvis|aluna|plus", "title": "título curto", "detail": "o que fazer e qual o critério de entrega", "tier": "reasoning|fast"}], '
     '"next_step": "próximo passo do projeto depois desta missão", '
     '"decision_needed": "decisão que só o Chefe pode tomar, ou string vazia"}\n'
     "Regras: no máximo 4 tarefas; 'aluna' é a Luna (loja/site/atendimento); 'jarvis' rápidas; 'plus' análise; "
-    "'pro' supervisão/consolidação. Nunca invente preços, estoque ou fatos comerciais — use só os dados fornecidos. "
+    "'pro' supervisão/consolidação. 'tier' é 'reasoning' para análise/decisão/planejamento, 'fast' para execução simples/busca/listagem. "
+    "Nunca invente preços, estoque ou fatos comerciais — use só os dados fornecidos. "
     "Escreva tudo em português do Brasil."
 )
 
@@ -233,12 +235,21 @@ async def _execute_task(task: dict, context: str, agent: dict | None) -> None:
 
     reply: str | None = None
     if agent:
+        provider = agent.get("provider", "openai")
+        model = agent.get("model", "gpt-5.4")
+        # Per-task routing: when the Chefe turned it on, swap the model to the right tier (reasoning vs fast)
+        # while keeping the agent's provider — so Jarvis stays Jarvis but on Haiku for a fast task.
+        tier = task.get("tier")
+        if tier in ("reasoning", "fast") and await routing_auto():
+            override = tier_model(provider, tier)
+            if override:
+                model = override
         reply = await llm_text(
             EXEC_SYSTEM.format(name=agent["name"], role=agent.get("role_pt", "agente operacional")),
             f"{context}\n\nSua tarefa delegada: {title}\nDetalhes/critério: {detail or '—'}\n\nResponda com a execução.",
             session_id=f"task-{task['id']}",
-            provider=agent.get("provider", "openai"),
-            model=agent.get("model", "gpt-5.4"),
+            provider=provider,
+            model=model,
         )
     simulated = reply is None
     if simulated:
@@ -331,10 +342,12 @@ async def run_mission(mission_id: str) -> None:
             )
             for item in [item for item in plan.get("tasks", []) if isinstance(item, dict)][:4] or [{"agent_key": "pro", "title": "Supervisionar execução", "detail": text[:300]}]:
                 key = item.get("agent_key") if item.get("agent_key") in DELEGATABLE else "pro"
+                tier = item.get("tier") if item.get("tier") in ("reasoning", "fast") else None
                 task_docs.append({
                     "id": _new_id(), "mission_id": mission_id, "mission_text": text, "agent_key": key,
                     "title": (str(item.get("title") or "Tarefa").strip()[:140] or "Tarefa"),
                     "detail": str(item.get("detail") or "").strip()[:800],
+                    "tier": tier,
                     "status": "queued", "result": None, "project_id": mission.get("project_id"), "review_note": None,
                     "created_at": _now(), "updated_at": _now(),
                 })

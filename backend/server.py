@@ -74,8 +74,9 @@ from routers.memories import router as memories_router
 from routers.mcp import router as mcp_router
 from routers.missions import router as missions_router
 from routers.projects import router as projects_router
-from routers.store import router as store_router
 from routers.room import router as room_router
+from routers.routing import router as routing_router
+from routers.store import router as store_router
 from routers.system import router as system_router
 from routers.tasks import router as tasks_router
 from routers.visual import router as visual_router
@@ -89,6 +90,7 @@ api_router.include_router(mcp_router)
 api_router.include_router(memories_router)
 api_router.include_router(missions_router)
 api_router.include_router(projects_router)
+api_router.include_router(routing_router)
 api_router.include_router(store_router)
 api_router.include_router(room_router)
 api_router.include_router(system_router)
